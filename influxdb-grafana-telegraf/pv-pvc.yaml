@@ -11,3 +11,50 @@ spec:
   resources:
     requests:
       storage: 5Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: monitoring
+  name: task-pv-volume
+  labels:
+    app: influxdb
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data1"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graf-data-dir-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: monitoring
+  name: graf-data-dir-pv
+  labels:
+    app: grafana
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data2"
