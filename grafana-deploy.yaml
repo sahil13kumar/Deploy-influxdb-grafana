@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: grafana
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: grafana
+    spec:
+      volumes:
+      - configMap:
+          name: grafana-config
+        name: grafana-config
+      containers:
+      - image: docker.io/grafana/grafana:5.3.2
+        name: grafana
+        volumeMounts:
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: grafana-config
+          readOnly: true
+          subPath: influxdb-datasource.yml
+        - mountPath: /etc/grafana/provisioning/dashboards
+          name: grafana-config
+          readOnly: true
+          subPath: grafana-dashboard-provider.yml
+        - mountPath: /var/lib/grafana/dashboards
+          name: grafana-config
+          readOnly: true
+          subPath: twittergraph-dashboard.json
+        resources: {}
+status: {}

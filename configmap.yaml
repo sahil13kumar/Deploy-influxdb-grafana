@@ -1,0 +1,448 @@
+apiVersion: v1
+data:
+  grafana-dashboard-provider.yml: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: grafana
+      name: grafana
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: grafana
+      strategy: {}
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: grafana
+        spec:
+          volumes:
+          - configMap:
+              name: grafana-config
+            name: grafana-config
+          containers:
+          - image: docker.io/grafana/grafana:5.3.2
+            name: grafana
+            volumeMounts:
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-config
+              readOnly: true
+              subPath: influxdb-datasource.yml
+            - mountPath: /etc/grafana/provisioning/dashboards
+              name: grafana-config
+              readOnly: true
+              subPath: grafana-dashboard-provider.yml
+            - mountPath: /var/lib/grafana/dashboards
+              name: grafana-config
+              readOnly: true
+              subPath: twittergraph-dashboard.json
+            resources: {}
+    status: {}
+  influxdb-datasource.yml: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: influxdb
+      name: influxdb
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: influxdb
+      strategy: {}
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: influxdb
+        spec:
+          volumes:
+          - name: var-lib-influxdb
+            persistentVolumeClaim:
+              claimName: influxdb
+          containers:
+          - image: docker.io/influxdb:1.6.4
+            name: influxdb
+            volumeMounts:
+            - mountPath: /var/lib/influxdb
+              name: var-lib-influxdb
+            resources: {}
+    status: {}
+  twittergraph-dashboard.json: "{\r\n  \"__requires\": [\r\n    {\r\n      \"type\":
+    \"grafana\",\r\n      \"id\": \"grafana\",\r\n      \"name\": \"Grafana\",\r\n
+    \     \"version\": \"5.3.2\"\r\n    },\r\n    {\r\n      \"type\": \"panel\",\r\n
+    \     \"id\": \"graph\",\r\n      \"name\": \"Graph\",\r\n      \"version\": \"5.0.0\"\r\n
+    \   },\r\n    {\r\n      \"type\": \"datasource\",\r\n      \"id\": \"influxdb\",\r\n
+    \     \"name\": \"InfluxDB\",\r\n      \"version\": \"5.0.0\"\r\n    },\r\n    {\r\n
+    \     \"type\": \"panel\",\r\n      \"id\": \"singlestat\",\r\n      \"name\":
+    \"Singlestat\",\r\n      \"version\": \"5.0.0\"\r\n    }\r\n  ],\r\n  \"annotations\":
+    {\r\n    \"list\": [\r\n      {\r\n        \"builtIn\": 1,\r\n        \"datasource\":
+    \"-- Grafana --\",\r\n        \"enable\": true,\r\n        \"hide\": true,\r\n
+    \       \"iconColor\": \"rgba(0, 211, 255, 1)\",\r\n        \"name\": \"Annotations
+    & Alerts\",\r\n        \"type\": \"dashboard\"\r\n      }\r\n    ]\r\n  },\r\n
+    \ \"editable\": true,\r\n  \"gnetId\": null,\r\n  \"graphTooltip\": 0,\r\n  \"id\":
+    null,\r\n  \"links\": [],\r\n  \"panels\": [\r\n    {\r\n      \"cacheTimeout\":
+    null,\r\n      \"colorBackground\": false,\r\n      \"colorValue\": false,\r\n
+    \     \"colors\": [\r\n        \"#299c46\",\r\n        \"rgba(237, 129, 40, 0.89)\",\r\n
+    \       \"#d44a3a\"\r\n      ],\r\n      \"datasource\": \"influxdb\",\r\n      \"format\":
+    \"none\",\r\n      \"gauge\": {\r\n        \"maxValue\": 100,\r\n        \"minValue\":
+    0,\r\n        \"show\": false,\r\n        \"thresholdLabels\": false,\r\n        \"thresholdMarkers\":
+    true\r\n      },\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\":
+    5,\r\n        \"x\": 0,\r\n        \"y\": 0\r\n      },\r\n      \"id\": 2,\r\n
+    \     \"interval\": \"\",\r\n      \"links\": [],\r\n      \"mappingType\": 1,\r\n
+    \     \"mappingTypes\": [\r\n        {\r\n          \"name\": \"value to text\",\r\n
+    \         \"value\": 1\r\n        },\r\n        {\r\n          \"name\": \"range
+    to text\",\r\n          \"value\": 2\r\n        }\r\n      ],\r\n      \"maxDataPoints\":
+    100,\r\n      \"nullPointMode\": \"connected\",\r\n      \"nullText\": null,\r\n
+    \     \"postfix\": \"\",\r\n      \"postfixFontSize\": \"50%\",\r\n      \"prefix\":
+    \"\",\r\n      \"prefixFontSize\": \"50%\",\r\n      \"rangeMaps\": [\r\n        {\r\n
+    \         \"from\": \"null\",\r\n          \"text\": \"N/A\",\r\n          \"to\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"sparkline\": {\r\n        \"fillColor\":
+    \"rgba(31, 118, 189, 0.18)\",\r\n        \"full\": false,\r\n        \"lineColor\":
+    \"rgb(31, 120, 193)\",\r\n        \"show\": false\r\n      },\r\n      \"tableColumn\":
+    \"\",\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"followers_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"last\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    \"\",\r\n      \"title\": \"Current Followers\",\r\n      \"type\": \"singlestat\",\r\n
+    \     \"valueFontSize\": \"200%\",\r\n      \"valueMaps\": [\r\n        {\r\n
+    \         \"op\": \"=\",\r\n          \"text\": \"N/A\",\r\n          \"value\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"valueName\": \"current\"\r\n    },\r\n
+    \   {\r\n      \"aliasColors\": {},\r\n      \"bars\": false,\r\n      \"dashLength\":
+    10,\r\n      \"dashes\": false,\r\n      \"datasource\": \"influxdb\",\r\n      \"fill\":
+    1,\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\": 19,\r\n        \"x\":
+    5,\r\n        \"y\": 0\r\n      },\r\n      \"id\": 4,\r\n      \"legend\": {\r\n
+    \       \"avg\": false,\r\n        \"current\": false,\r\n        \"max\": false,\r\n
+    \       \"min\": false,\r\n        \"show\": true,\r\n        \"total\": false,\r\n
+    \       \"values\": false\r\n      },\r\n      \"lines\": true,\r\n      \"linewidth\":
+    1,\r\n      \"links\": [],\r\n      \"nullPointMode\": \"null\",\r\n      \"percentage\":
+    false,\r\n      \"pointradius\": 5,\r\n      \"points\": false,\r\n      \"renderer\":
+    \"flot\",\r\n      \"seriesOverrides\": [],\r\n      \"spaceLength\": 10,\r\n
+    \     \"stack\": false,\r\n      \"steppedLine\": false,\r\n      \"targets\":
+    [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n              \"params\":
+    [\r\n                \"$__interval\"\r\n              ],\r\n              \"type\":
+    \"time\"\r\n            },\r\n            {\r\n              \"params\": [\r\n
+    \               \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"followers_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"distinct\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    [],\r\n      \"timeFrom\": null,\r\n      \"timeShift\": null,\r\n      \"title\":
+    \"Followers Over Time\",\r\n      \"tooltip\": {\r\n        \"shared\": true,\r\n
+    \       \"sort\": 0,\r\n        \"value_type\": \"individual\"\r\n      },\r\n
+    \     \"type\": \"graph\",\r\n      \"xaxis\": {\r\n        \"buckets\": null,\r\n
+    \       \"mode\": \"time\",\r\n        \"name\": null,\r\n        \"show\": true,\r\n
+    \       \"values\": []\r\n      },\r\n      \"yaxes\": [\r\n        {\r\n          \"format\":
+    \"none\",\r\n          \"label\": null,\r\n          \"logBase\": 1,\r\n          \"max\":
+    null,\r\n          \"min\": null,\r\n          \"show\": true\r\n        },\r\n
+    \       {\r\n          \"format\": \"none\",\r\n          \"label\": null,\r\n
+    \         \"logBase\": 1,\r\n          \"max\": null,\r\n          \"min\": null,\r\n
+    \         \"show\": true\r\n        }\r\n      ],\r\n      \"yaxis\": {\r\n        \"align\":
+    false,\r\n        \"alignLevel\": null\r\n      }\r\n    },\r\n    {\r\n      \"cacheTimeout\":
+    null,\r\n      \"colorBackground\": false,\r\n      \"colorValue\": false,\r\n
+    \     \"colors\": [\r\n        \"#299c46\",\r\n        \"rgba(237, 129, 40, 0.89)\",\r\n
+    \       \"#d44a3a\"\r\n      ],\r\n      \"datasource\": \"influxdb\",\r\n      \"format\":
+    \"none\",\r\n      \"gauge\": {\r\n        \"maxValue\": 100,\r\n        \"minValue\":
+    0,\r\n        \"show\": false,\r\n        \"thresholdLabels\": false,\r\n        \"thresholdMarkers\":
+    true\r\n      },\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\":
+    5,\r\n        \"x\": 0,\r\n        \"y\": 5\r\n      },\r\n      \"id\": 8,\r\n
+    \     \"interval\": null,\r\n      \"links\": [],\r\n      \"mappingType\": 1,\r\n
+    \     \"mappingTypes\": [\r\n        {\r\n          \"name\": \"value to text\",\r\n
+    \         \"value\": 1\r\n        },\r\n        {\r\n          \"name\": \"range
+    to text\",\r\n          \"value\": 2\r\n        }\r\n      ],\r\n      \"maxDataPoints\":
+    100,\r\n      \"nullPointMode\": \"connected\",\r\n      \"nullText\": null,\r\n
+    \     \"postfix\": \"\",\r\n      \"postfixFontSize\": \"50%\",\r\n      \"prefix\":
+    \"\",\r\n      \"prefixFontSize\": \"50%\",\r\n      \"rangeMaps\": [\r\n        {\r\n
+    \         \"from\": \"null\",\r\n          \"text\": \"N/A\",\r\n          \"to\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"sparkline\": {\r\n        \"fillColor\":
+    \"rgba(31, 118, 189, 0.18)\",\r\n        \"full\": false,\r\n        \"lineColor\":
+    \"rgb(31, 120, 193)\",\r\n        \"show\": false\r\n      },\r\n      \"tableColumn\":
+    \"\",\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"friends_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"distinct\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    \"\",\r\n      \"title\": \"Current Friends\",\r\n      \"type\": \"singlestat\",\r\n
+    \     \"valueFontSize\": \"200%\",\r\n      \"valueMaps\": [\r\n        {\r\n
+    \         \"op\": \"=\",\r\n          \"text\": \"N/A\",\r\n          \"value\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"valueName\": \"avg\"\r\n    },\r\n
+    \   {\r\n      \"aliasColors\": {},\r\n      \"bars\": false,\r\n      \"dashLength\":
+    10,\r\n      \"dashes\": false,\r\n      \"datasource\": \"influxdb\",\r\n      \"fill\":
+    1,\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\": 19,\r\n        \"x\":
+    5,\r\n        \"y\": 5\r\n      },\r\n      \"id\": 6,\r\n      \"legend\": {\r\n
+    \       \"avg\": false,\r\n        \"current\": false,\r\n        \"max\": false,\r\n
+    \       \"min\": false,\r\n        \"show\": true,\r\n        \"total\": false,\r\n
+    \       \"values\": false\r\n      },\r\n      \"lines\": true,\r\n      \"linewidth\":
+    1,\r\n      \"links\": [],\r\n      \"nullPointMode\": \"null\",\r\n      \"percentage\":
+    false,\r\n      \"pointradius\": 5,\r\n      \"points\": false,\r\n      \"renderer\":
+    \"flot\",\r\n      \"seriesOverrides\": [],\r\n      \"spaceLength\": 10,\r\n
+    \     \"stack\": false,\r\n      \"steppedLine\": false,\r\n      \"targets\":
+    [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n              \"params\":
+    [\r\n                \"$__interval\"\r\n              ],\r\n              \"type\":
+    \"time\"\r\n            },\r\n            {\r\n              \"params\": [\r\n
+    \               \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"friends_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"distinct\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    [],\r\n      \"timeFrom\": null,\r\n      \"timeShift\": null,\r\n      \"title\":
+    \"Friends Count over Time\",\r\n      \"tooltip\": {\r\n        \"shared\": true,\r\n
+    \       \"sort\": 0,\r\n        \"value_type\": \"individual\"\r\n      },\r\n
+    \     \"type\": \"graph\",\r\n      \"xaxis\": {\r\n        \"buckets\": null,\r\n
+    \       \"mode\": \"time\",\r\n        \"name\": null,\r\n        \"show\": true,\r\n
+    \       \"values\": []\r\n      },\r\n      \"yaxes\": [\r\n        {\r\n          \"format\":
+    \"none\",\r\n          \"label\": null,\r\n          \"logBase\": 1,\r\n          \"max\":
+    null,\r\n          \"min\": null,\r\n          \"show\": true\r\n        },\r\n
+    \       {\r\n          \"format\": \"none\",\r\n          \"label\": null,\r\n
+    \         \"logBase\": 1,\r\n          \"max\": null,\r\n          \"min\": null,\r\n
+    \         \"show\": true\r\n        }\r\n      ],\r\n      \"yaxis\": {\r\n        \"align\":
+    false,\r\n        \"alignLevel\": null\r\n      }\r\n    },\r\n    {\r\n      \"cacheTimeout\":
+    null,\r\n      \"colorBackground\": false,\r\n      \"colorValue\": false,\r\n
+    \     \"colors\": [\r\n        \"#299c46\",\r\n        \"rgba(237, 129, 40, 0.89)\",\r\n
+    \       \"#d44a3a\"\r\n      ],\r\n      \"datasource\": \"influxdb\",\r\n      \"format\":
+    \"none\",\r\n      \"gauge\": {\r\n        \"maxValue\": 100,\r\n        \"minValue\":
+    0,\r\n        \"show\": false,\r\n        \"thresholdLabels\": false,\r\n        \"thresholdMarkers\":
+    true\r\n      },\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\":
+    5,\r\n        \"x\": 0,\r\n        \"y\": 10\r\n      },\r\n      \"id\": 9,\r\n
+    \     \"interval\": \"\",\r\n      \"links\": [],\r\n      \"mappingType\": 1,\r\n
+    \     \"mappingTypes\": [\r\n        {\r\n          \"name\": \"value to text\",\r\n
+    \         \"value\": 1\r\n        },\r\n        {\r\n          \"name\": \"range
+    to text\",\r\n          \"value\": 2\r\n        }\r\n      ],\r\n      \"maxDataPoints\":
+    100,\r\n      \"nullPointMode\": \"connected\",\r\n      \"nullText\": null,\r\n
+    \     \"postfix\": \"\",\r\n      \"postfixFontSize\": \"50%\",\r\n      \"prefix\":
+    \"\",\r\n      \"prefixFontSize\": \"50%\",\r\n      \"rangeMaps\": [\r\n        {\r\n
+    \         \"from\": \"null\",\r\n          \"text\": \"N/A\",\r\n          \"to\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"sparkline\": {\r\n        \"fillColor\":
+    \"rgba(31, 118, 189, 0.18)\",\r\n        \"full\": false,\r\n        \"lineColor\":
+    \"rgb(31, 120, 193)\",\r\n        \"show\": false\r\n      },\r\n      \"tableColumn\":
+    \"\",\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"statuses_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"last\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    \"\",\r\n      \"title\": \"Current Status Count\",\r\n      \"type\": \"singlestat\",\r\n
+    \     \"valueFontSize\": \"200%\",\r\n      \"valueMaps\": [\r\n        {\r\n
+    \         \"op\": \"=\",\r\n          \"text\": \"N/A\",\r\n          \"value\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"valueName\": \"current\"\r\n    },\r\n
+    \   {\r\n      \"aliasColors\": {},\r\n      \"bars\": false,\r\n      \"dashLength\":
+    10,\r\n      \"dashes\": false,\r\n      \"datasource\": \"influxdb\",\r\n      \"fill\":
+    1,\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\": 19,\r\n        \"x\":
+    5,\r\n        \"y\": 10\r\n      },\r\n      \"id\": 10,\r\n      \"legend\":
+    {\r\n        \"avg\": false,\r\n        \"current\": false,\r\n        \"max\":
+    false,\r\n        \"min\": false,\r\n        \"show\": true,\r\n        \"total\":
+    false,\r\n        \"values\": false\r\n      },\r\n      \"lines\": true,\r\n
+    \     \"linewidth\": 1,\r\n      \"links\": [],\r\n      \"nullPointMode\": \"null\",\r\n
+    \     \"percentage\": false,\r\n      \"pointradius\": 5,\r\n      \"points\":
+    false,\r\n      \"renderer\": \"flot\",\r\n      \"seriesOverrides\": [],\r\n
+    \     \"spaceLength\": 10,\r\n      \"stack\": false,\r\n      \"steppedLine\":
+    false,\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"statuses_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"distinct\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    [],\r\n      \"timeFrom\": null,\r\n      \"timeShift\": null,\r\n      \"title\":
+    \"Status Count Over Time\",\r\n      \"tooltip\": {\r\n        \"shared\": true,\r\n
+    \       \"sort\": 0,\r\n        \"value_type\": \"individual\"\r\n      },\r\n
+    \     \"type\": \"graph\",\r\n      \"xaxis\": {\r\n        \"buckets\": null,\r\n
+    \       \"mode\": \"time\",\r\n        \"name\": null,\r\n        \"show\": true,\r\n
+    \       \"values\": []\r\n      },\r\n      \"yaxes\": [\r\n        {\r\n          \"format\":
+    \"none\",\r\n          \"label\": null,\r\n          \"logBase\": 1,\r\n          \"max\":
+    null,\r\n          \"min\": null,\r\n          \"show\": true\r\n        },\r\n
+    \       {\r\n          \"format\": \"none\",\r\n          \"label\": null,\r\n
+    \         \"logBase\": 1,\r\n          \"max\": null,\r\n          \"min\": null,\r\n
+    \         \"show\": true\r\n        }\r\n      ],\r\n      \"yaxis\": {\r\n        \"align\":
+    false,\r\n        \"alignLevel\": null\r\n      }\r\n    },\r\n    {\r\n      \"cacheTimeout\":
+    null,\r\n      \"colorBackground\": false,\r\n      \"colorValue\": false,\r\n
+    \     \"colors\": [\r\n        \"#299c46\",\r\n        \"rgba(237, 129, 40, 0.89)\",\r\n
+    \       \"#d44a3a\"\r\n      ],\r\n      \"datasource\": \"influxdb\",\r\n      \"format\":
+    \"none\",\r\n      \"gauge\": {\r\n        \"maxValue\": 100,\r\n        \"minValue\":
+    0,\r\n        \"show\": false,\r\n        \"thresholdLabels\": false,\r\n        \"thresholdMarkers\":
+    true\r\n      },\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\":
+    5,\r\n        \"x\": 0,\r\n        \"y\": 15\r\n      },\r\n      \"id\": 11,\r\n
+    \     \"interval\": \"\",\r\n      \"links\": [],\r\n      \"mappingType\": 1,\r\n
+    \     \"mappingTypes\": [\r\n        {\r\n          \"name\": \"value to text\",\r\n
+    \         \"value\": 1\r\n        },\r\n        {\r\n          \"name\": \"range
+    to text\",\r\n          \"value\": 2\r\n        }\r\n      ],\r\n      \"maxDataPoints\":
+    100,\r\n      \"nullPointMode\": \"connected\",\r\n      \"nullText\": null,\r\n
+    \     \"postfix\": \"\",\r\n      \"postfixFontSize\": \"50%\",\r\n      \"prefix\":
+    \"\",\r\n      \"prefixFontSize\": \"50%\",\r\n      \"rangeMaps\": [\r\n        {\r\n
+    \         \"from\": \"null\",\r\n          \"text\": \"N/A\",\r\n          \"to\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"sparkline\": {\r\n        \"fillColor\":
+    \"rgba(31, 118, 189, 0.18)\",\r\n        \"full\": false,\r\n        \"lineColor\":
+    \"rgb(31, 120, 193)\",\r\n        \"show\": false\r\n      },\r\n      \"tableColumn\":
+    \"\",\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"favourites_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"last\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    \"\",\r\n      \"title\": \"Current Favourites Count\",\r\n      \"type\": \"singlestat\",\r\n
+    \     \"valueFontSize\": \"200%\",\r\n      \"valueMaps\": [\r\n        {\r\n
+    \         \"op\": \"=\",\r\n          \"text\": \"N/A\",\r\n          \"value\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"valueName\": \"current\"\r\n    },\r\n
+    \   {\r\n      \"aliasColors\": {},\r\n      \"bars\": false,\r\n      \"dashLength\":
+    10,\r\n      \"dashes\": false,\r\n      \"datasource\": \"influxdb\",\r\n      \"fill\":
+    1,\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\": 19,\r\n        \"x\":
+    5,\r\n        \"y\": 15\r\n      },\r\n      \"id\": 12,\r\n      \"legend\":
+    {\r\n        \"avg\": false,\r\n        \"current\": false,\r\n        \"max\":
+    false,\r\n        \"min\": false,\r\n        \"show\": true,\r\n        \"total\":
+    false,\r\n        \"values\": false\r\n      },\r\n      \"lines\": true,\r\n
+    \     \"linewidth\": 1,\r\n      \"links\": [],\r\n      \"nullPointMode\": \"null\",\r\n
+    \     \"percentage\": false,\r\n      \"pointradius\": 5,\r\n      \"points\":
+    false,\r\n      \"renderer\": \"flot\",\r\n      \"seriesOverrides\": [],\r\n
+    \     \"spaceLength\": 10,\r\n      \"stack\": false,\r\n      \"steppedLine\":
+    false,\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"favourites_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"distinct\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    [],\r\n      \"timeFrom\": null,\r\n      \"timeShift\": null,\r\n      \"title\":
+    \"Favourites Count Over Time\",\r\n      \"tooltip\": {\r\n        \"shared\":
+    true,\r\n        \"sort\": 0,\r\n        \"value_type\": \"individual\"\r\n      },\r\n
+    \     \"type\": \"graph\",\r\n      \"xaxis\": {\r\n        \"buckets\": null,\r\n
+    \       \"mode\": \"time\",\r\n        \"name\": null,\r\n        \"show\": true,\r\n
+    \       \"values\": []\r\n      },\r\n      \"yaxes\": [\r\n        {\r\n          \"format\":
+    \"none\",\r\n          \"label\": null,\r\n          \"logBase\": 1,\r\n          \"max\":
+    null,\r\n          \"min\": null,\r\n          \"show\": true\r\n        },\r\n
+    \       {\r\n          \"format\": \"none\",\r\n          \"label\": null,\r\n
+    \         \"logBase\": 1,\r\n          \"max\": null,\r\n          \"min\": null,\r\n
+    \         \"show\": true\r\n        }\r\n      ],\r\n      \"yaxis\": {\r\n        \"align\":
+    false,\r\n        \"alignLevel\": null\r\n      }\r\n    },\r\n    {\r\n      \"cacheTimeout\":
+    null,\r\n      \"colorBackground\": false,\r\n      \"colorValue\": false,\r\n
+    \     \"colors\": [\r\n        \"#299c46\",\r\n        \"rgba(237, 129, 40, 0.89)\",\r\n
+    \       \"#d44a3a\"\r\n      ],\r\n      \"datasource\": \"influxdb\",\r\n      \"format\":
+    \"none\",\r\n      \"gauge\": {\r\n        \"maxValue\": 100,\r\n        \"minValue\":
+    0,\r\n        \"show\": false,\r\n        \"thresholdLabels\": false,\r\n        \"thresholdMarkers\":
+    true\r\n      },\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\":
+    5,\r\n        \"x\": 0,\r\n        \"y\": 20\r\n      },\r\n      \"id\": 13,\r\n
+    \     \"interval\": \"\",\r\n      \"links\": [],\r\n      \"mappingType\": 1,\r\n
+    \     \"mappingTypes\": [\r\n        {\r\n          \"name\": \"value to text\",\r\n
+    \         \"value\": 1\r\n        },\r\n        {\r\n          \"name\": \"range
+    to text\",\r\n          \"value\": 2\r\n        }\r\n      ],\r\n      \"maxDataPoints\":
+    100,\r\n      \"nullPointMode\": \"connected\",\r\n      \"nullText\": null,\r\n
+    \     \"postfix\": \"\",\r\n      \"postfixFontSize\": \"50%\",\r\n      \"prefix\":
+    \"\",\r\n      \"prefixFontSize\": \"50%\",\r\n      \"rangeMaps\": [\r\n        {\r\n
+    \         \"from\": \"null\",\r\n          \"text\": \"N/A\",\r\n          \"to\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"sparkline\": {\r\n        \"fillColor\":
+    \"rgba(31, 118, 189, 0.18)\",\r\n        \"full\": false,\r\n        \"lineColor\":
+    \"rgb(31, 120, 193)\",\r\n        \"show\": false\r\n      },\r\n      \"tableColumn\":
+    \"\",\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"listed_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"last\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    \"\",\r\n      \"title\": \"Current Listed Count\",\r\n      \"type\": \"singlestat\",\r\n
+    \     \"valueFontSize\": \"200%\",\r\n      \"valueMaps\": [\r\n        {\r\n
+    \         \"op\": \"=\",\r\n          \"text\": \"N/A\",\r\n          \"value\":
+    \"null\"\r\n        }\r\n      ],\r\n      \"valueName\": \"current\"\r\n    },\r\n
+    \   {\r\n      \"aliasColors\": {},\r\n      \"bars\": false,\r\n      \"dashLength\":
+    10,\r\n      \"dashes\": false,\r\n      \"datasource\": \"influxdb\",\r\n      \"fill\":
+    1,\r\n      \"gridPos\": {\r\n        \"h\": 5,\r\n        \"w\": 19,\r\n        \"x\":
+    5,\r\n        \"y\": 20\r\n      },\r\n      \"id\": 14,\r\n      \"legend\":
+    {\r\n        \"avg\": false,\r\n        \"current\": false,\r\n        \"max\":
+    false,\r\n        \"min\": false,\r\n        \"show\": true,\r\n        \"total\":
+    false,\r\n        \"values\": false\r\n      },\r\n      \"lines\": true,\r\n
+    \     \"linewidth\": 1,\r\n      \"links\": [],\r\n      \"nullPointMode\": \"null\",\r\n
+    \     \"percentage\": false,\r\n      \"pointradius\": 5,\r\n      \"points\":
+    false,\r\n      \"renderer\": \"flot\",\r\n      \"seriesOverrides\": [],\r\n
+    \     \"spaceLength\": 10,\r\n      \"stack\": false,\r\n      \"steppedLine\":
+    false,\r\n      \"targets\": [\r\n        {\r\n          \"groupBy\": [\r\n            {\r\n
+    \             \"params\": [\r\n                \"$__interval\"\r\n              ],\r\n
+    \             \"type\": \"time\"\r\n            },\r\n            {\r\n              \"params\":
+    [\r\n                \"null\"\r\n              ],\r\n              \"type\": \"fill\"\r\n
+    \           }\r\n          ],\r\n          \"measurement\": \"listed_count\",\r\n
+    \         \"orderByTime\": \"ASC\",\r\n          \"policy\": \"default\",\r\n
+    \         \"refId\": \"A\",\r\n          \"resultFormat\": \"time_series\",\r\n
+    \         \"select\": [\r\n            [\r\n              {\r\n                \"params\":
+    [\r\n                  \"value\"\r\n                ],\r\n                \"type\":
+    \"field\"\r\n              },\r\n              {\r\n                \"params\":
+    [],\r\n                \"type\": \"distinct\"\r\n              }\r\n            ]\r\n
+    \         ],\r\n          \"tags\": []\r\n        }\r\n      ],\r\n      \"thresholds\":
+    [],\r\n      \"timeFrom\": null,\r\n      \"timeShift\": null,\r\n      \"title\":
+    \"Listed Count Over Time\",\r\n      \"tooltip\": {\r\n        \"shared\": true,\r\n
+    \       \"sort\": 0,\r\n        \"value_type\": \"individual\"\r\n      },\r\n
+    \     \"type\": \"graph\",\r\n      \"xaxis\": {\r\n        \"buckets\": null,\r\n
+    \       \"mode\": \"time\",\r\n        \"name\": null,\r\n        \"show\": true,\r\n
+    \       \"values\": []\r\n      },\r\n      \"yaxes\": [\r\n        {\r\n          \"format\":
+    \"none\",\r\n          \"label\": null,\r\n          \"logBase\": 1,\r\n          \"max\":
+    null,\r\n          \"min\": null,\r\n          \"show\": true\r\n        },\r\n
+    \       {\r\n          \"format\": \"none\",\r\n          \"label\": null,\r\n
+    \         \"logBase\": 1,\r\n          \"max\": null,\r\n          \"min\": null,\r\n
+    \         \"show\": true\r\n        }\r\n      ],\r\n      \"yaxis\": {\r\n        \"align\":
+    false,\r\n        \"alignLevel\": null\r\n      }\r\n    }\r\n  ],\r\n  \"refresh\":
+    false,\r\n  \"schemaVersion\": 16,\r\n  \"style\": \"dark\",\r\n  \"tags\": [],\r\n
+    \ \"templating\": {\r\n    \"list\": []\r\n  },\r\n  \"time\": {\r\n    \"from\":
+    \"now-15m\",\r\n    \"to\": \"now\"\r\n  },\r\n  \"timepicker\": {\r\n    \"refresh_intervals\":
+    [\r\n      \"5s\",\r\n      \"10s\",\r\n      \"30s\",\r\n      \"1m\",\r\n      \"5m\",\r\n
+    \     \"15m\",\r\n      \"30m\",\r\n      \"1h\",\r\n      \"2h\",\r\n      \"1d\"\r\n
+    \   ],\r\n    \"time_options\": [\r\n      \"5m\",\r\n      \"15m\",\r\n      \"1h\",\r\n
+    \     \"6h\",\r\n      \"12h\",\r\n      \"24h\",\r\n      \"2d\",\r\n      \"7d\",\r\n
+    \     \"30d\"\r\n    ]\r\n  },\r\n  \"timezone\": \"\",\r\n  \"title\": \"TwitterGraph\",\r\n
+    \ \"uid\": \"b6TPTLaiz\",\r\n  \"version\": 9\r\n}"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: grafana-config
